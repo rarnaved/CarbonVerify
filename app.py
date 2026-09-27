@@ -20,7 +20,7 @@ st.markdown("""
     .sub-header { font-size: 1rem; color: #64748B; margin-bottom: 20px; }
     .metric-card { background-color: #F8FAFC; border-radius: 8px; padding: 15px; border: 1px solid #E2E8F0; }
 </style>
-""", unsafe_allow_keywords=True)
+""", unsafe_allow_html=True)
 
 st.markdown('<div class="main-header">🌱 CarbonVerify Enterprise</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">AI-Driven Remote Sensing & Geospatial System for Carbon Credit Verification</div>', unsafe_allow_html=True)
@@ -140,14 +140,12 @@ with tab_map:
     
     with col_map:
         st.subheader("Project Boundary Visualization")
-        # Interactive Folium Map
         m = folium.Map(location=[21.9497, 88.9007], zoom_start=11, tiles="OpenStreetMap")
         
         if uploaded_geojson is not None:
             geojson_data = json.load(uploaded_geojson)
             folium.GeoJson(geojson_data, name="Project Boundary").add_to(m)
         else:
-            # Default Bounding Box Example
             coords = [[21.90, 88.85], [21.90, 88.95], [22.00, 88.95], [22.00, 88.85]]
             folium.Polygon(locations=coords, color="green", fill=True, fill_opacity=0.3, popup=project_name).add_to(m)
             
