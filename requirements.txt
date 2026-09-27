@@ -1,0 +1,8 @@
+streamlit
+numpy
+pandas
+scikit-learn
+shap
+fpdf2
+folium
+streamlit-folium
