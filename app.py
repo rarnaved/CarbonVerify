@@ -13,26 +13,16 @@ from datetime import datetime
 import folium
 from streamlit_folium import st_folium
 
-# PAGE CONFIG & ENTERPRISE LAYOUT
+# PAGE CONFIG & LAYOUT
 st.set_page_config(page_title="CarbonVerify Enterprise GeoAI", layout="wide", initial_sidebar_state="expanded")
 
-# CUSTOM CSS FOR ENTERPRISE SAAS LOOK
-st.markdown("""
-<style>
-    .main-title { font-size: 2.3rem; font-weight: 800; color: #0F172A; letter-spacing: -0.5px; }
-    .subtitle { font-size: 1rem; color: #475569; margin-bottom: 15px; }
-    .kpi-card { background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%); border-radius: 10px; padding: 18px; border: 1px solid #DBEAFE; }
-    .alert-card { background-color: #FEF2F2; border-left: 5px solid #EF4444; padding: 12px; border-radius: 6px; }
-    .success-card { background-color: #F0FDF4; border-left: 5px solid #22C55E; padding: 12px; border-radius: 6px; }
-</style>
-""", unsafe_allow_html=True)
-
-st.markdown('<div class="main-title">🌍 CarbonVerify Enterprise GeoAI</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Automated Satellite Remote Sensing & Explainable AI Framework for Carbon Credit Audit Assessment</div>', unsafe_allow_html=True)
+# TITLE
+st.title("🌍 CarbonVerify Enterprise GeoAI")
+st.caption("Automated Satellite Remote Sensing & Explainable AI Framework for Carbon Credit Audit Assessment")
 
 st.info("📌 **Positioning Statement:** CarbonVerify is an AI-assisted independent risk-screening platform. It performs digital MRV assessment and does not issue or officially certify carbon credits.")
 
-# SIDEBAR: ADVANCED CONTROLS
+# SIDEBAR: CONTROLS
 st.sidebar.header("🗺️ 1. Project Boundary & Metadata")
 project_name = st.sidebar.text_input("Project Name", "Sundarbans Mangrove Restoration")
 claimed_ha = st.sidebar.number_input("Claimed Area (Hectares)", min_value=10, max_value=50000, value=1500)
@@ -56,7 +46,7 @@ else:
 restoration_signal = st.sidebar.slider("Manual NDVI Growth Uplift", min_value=-0.3, max_value=0.5, value=float(restoration_signal), step=0.01)
 cloud_free_frac = st.sidebar.slider("Cloud-Free Quality Score", 0.5, 1.0, float(cloud_free_frac))
 
-# SATELLITE PIPELINE (SIMULATION + GEE READY)
+# SATELLITE PIPELINE
 @st.cache_data
 def generate_satellite_data(signal=0.18, cloud_frac=0.88):
     rng = np.random.default_rng(42)
@@ -87,7 +77,7 @@ def generate_satellite_data(signal=0.18, cloud_frac=0.88):
 
 sat_data = generate_satellite_data(signal=restoration_signal, cloud_frac=cloud_free_frac)
 
-# MULTI-MODEL ML BENCHMARKING ENGINE
+# MODEL BENCHMARKING
 @st.cache_resource
 def train_and_benchmark_models():
     rng = np.random.default_rng(7)
@@ -137,7 +127,7 @@ total_biomass = predicted_agb * claimed_ha
 total_carbon = total_biomass * 0.47
 estimated_co2e = total_carbon * (44 / 12)
 
-# CONSISTENCY & ANOMALY ENGINE
+# CONSISTENCY CALCULATIONS
 observed_ha = claimed_ha * (0.80 if restoration_signal < 0.0 else 0.95)
 spatial_score = max(0.0, 1.0 - abs(claimed_ha - observed_ha) / claimed_ha)
 veg_growth_score = min(1.0, max(0.0, (sat_data["ndvi_after"] - sat_data["ndvi_before"]) / 0.15))
@@ -147,15 +137,15 @@ model_score = benchmark_results[selected_model_name]["r2"]
 consistency_score = (0.25 * spatial_score + 0.35 * veg_growth_score + 0.20 * quality_score + 0.20 * model_score) * 100
 
 if consistency_score >= 85:
-    conf_band, badge_color = "Very High", "green"
+    conf_band = "Very High"
 elif consistency_score >= 65:
-    conf_band, badge_color = "High", "blue"
+    conf_band = "High"
 elif consistency_score >= 45:
-    conf_band, badge_color = "Moderate", "orange"
+    conf_band = "Moderate"
 else:
-    conf_band, badge_color = "Low", "red"
+    conf_band = "Low"
 
-# TOP DASHBOARD KPIS
+# DASHBOARD METRICS
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("Consistency Score", f"{consistency_score:.1f}%", f"Band: {conf_band}")
 col2.metric("Observed CO2e Impact", f"{estimated_co2e:,.0f} tCO2e", f"Claimed: {claimed_co2e:,.0f}")
@@ -164,7 +154,7 @@ col4.metric("Spatial Polygon Match", f"{observed_ha:.0f} Ha", f"Claimed: {claime
 
 st.divider()
 
-# TABS FOR ENTERPRISE MODULES
+# TABS
 tab_map, tab_bench, tab_xai, tab_audit = st.tabs([
     "🗺️ Geospatial Boundary & Anomaly Map", 
     "📊 Model Benchmarking & ML Comparison", 
@@ -197,10 +187,11 @@ with tab_map:
         }).set_index("Index")
         st.bar_chart(indices_df)
         
+        # CLEAN NATIVE STREAMLIT MESSAGES (NO BLANK BOXES)
         if restoration_signal < 0:
-            st.markdown('<div class="alert-card">⚠️ <b>Deforestation Risk Detected:</b> Vegetation index shows negative growth uplift compared to baseline.</div>', unsafe_allow_html=True)
+            st.error("⚠️ **Deforestation Risk Detected:** Vegetation index shows negative growth uplift compared to baseline.")
         else:
-            st.markdown('<div class="success-card">✅ <b>Vegetation Growth Positive:</b> Significant canopy development observed over monitoring period.</div>', unsafe_allow_html=True)
+            st.success("✅ **Vegetation Growth Positive:** Significant canopy development observed over monitoring period.")
 
 with tab_bench:
     st.subheader("Machine Learning Algorithm Comparison")
@@ -215,8 +206,7 @@ with tab_bench:
         })
     
     bench_df = pd.DataFrame(bench_data)
-    st.dataframe(bench_df.style.highlight_max(axis=0, subset=["R² Score (Accuracy)"], color="#DCFCE7"), use_container_width=True)
-    
+    st.dataframe(bench_df, use_container_width=True)
     st.write(f"**Current Selected Model:** `{selected_model_name}` (R² = {benchmark_results[selected_model_name]['r2']:.3f})")
 
 with tab_xai:
